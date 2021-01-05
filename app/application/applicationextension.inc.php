@@ -302,7 +302,7 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 				
 				// Prevent loop: only if the Person property is not equal to this new detail: update().
 				if($oPerson !== null && $oPerson->Get($sContactMethod) != $sContactDetail) {
-					$oPerson->Set($oContactMethod->Get($sContactMethod), $sContactDetail);
+					$oPerson->Set($sContactMethod, $sContactDetail);
 					$oPerson->DBUpdate();					
 				}
 				

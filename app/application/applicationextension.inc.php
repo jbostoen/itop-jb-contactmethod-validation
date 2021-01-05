@@ -284,6 +284,10 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 		
 		// If a ContactMethod changed, validate and port back to Person object
 		if($oObject instanceof ContactMethod) {
+			
+			$oContactMethod = $oObject;
+			$sContactMethod = $oContactMethod->Get('contact_method');
+			$sContactDetail = $oContactMethod->Get('contact_detail');
 						
 			// Might have been changed above (from phone to mobile_phone , from mobile_phone to phone )
 			// This should be updated properly in Person object.

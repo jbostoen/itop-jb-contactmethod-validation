@@ -39,7 +39,8 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 	 */	
 	public function OnCheckToWrite($oObject) {
 				
-		// Note: you can not set properties here on the object! (so no way to fix the format)
+		// Note: you can set properties here on the object!
+		// Abusing this method to only keep digits of valid phone numbers.
 		// Only blocks invalid input
 				
 		if($oObject instanceof ContactMethod) {
@@ -51,7 +52,8 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 				
 				case 'phone':
 				
-					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactMethod);
+					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail);
+					$oObject->Set('contact_detail', $oBelgianPhoneNumberValidator->GetDigits());
 					
 					switch(true) {
 						
@@ -78,7 +80,8 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 				
 				case 'mobile_phone':
 				
-					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactMethod);
+					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail);
+					$oObject->Set('contact_detail', $oBelgianPhoneNumberValidator->GetDigits());
 					
 					switch(true) {
 						
@@ -273,78 +276,15 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 	
 	/**
 	 * 
-	 * Updates related Person object each time a ContactMethod is updated and the other way around.
+	 * Updates related Person object each time after a ContactMethod is updated and the other way around.
 	 * Triggered on both insert and update.
 	 *
 	 */
 	public function OnContactMethodChanged($oObject) {
-			
-		// Improve quality by validating Belgian phone numbers
-			
+		
 		// If a ContactMethod changed, validate and port back to Person object
 		if($oObject instanceof ContactMethod) {
-			
-			$oContactMethod = $oObject;
-			$sContactMethod = $oContactMethod->Get('contact_method');
-			$sContactDetail = $oContactMethod->Get('contact_detail');
 						
-			// Write back to Person
-			switch($sContactMethod) {
-				
-				// These properties are available in the Person class
-				case 'phone':
-				
-					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail);
-					
-					switch(true) {
-						// Belgian mobile number
-						case $oBelgianPhoneNumberValidator->IsValidBelgianLandLineNumber() == true:
-						// International number
-						case $oBelgianPhoneNumberValidator->HasValidBelgianCountryPrefix() == false:
-							// Valid
-							break;
-							
-						// Just for clarity: mobile number is also invalid
-						default:
-						
-							return [ 
-								Dict::S('Errors/ContactMethod/InvalidPhoneNumber')
-							];
-					}
-					
-				
-					break;
-				
-				case 'mobile_phone':
-					
-					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail);
-					
-					switch(true) {
-						// Belgian mobile number
-						case $oBelgianPhoneNumberValidator->IsValidBelgianMobileNumber() == true:
-						// International number
-						case $oBelgianPhoneNumberValidator->HasValidBelgianCountryPrefix() == false:
-							// Valid
-							break;
-						
-						// Just for clarity: land line number is also invalid
-						default:
-						
-							return [ 
-								Dict::S('Errors/ContactMethod/InvalidMobilePhoneNumber')
-							];
-					}
-					
-					$oContactMethod->DBUpdate();
-				
-					break;
-				
-				// Other properties are not available in Person class
-				default: 
-					break;
-				
-			}
-			
 			// Might have been changed above (from phone to mobile_phone , from mobile_phone to phone )
 			// This should be updated properly in Person object.
 			
@@ -366,7 +306,9 @@ class ApplicationObjectExtension_ContactMethod implements iApplicationObjectExte
 					$oPerson->DBUpdate();					
 				}
 				
-			}			
+			}
+			
+			
 		}
 		
 		// If contact info on the Person object changed, update ContactMethods if necessary

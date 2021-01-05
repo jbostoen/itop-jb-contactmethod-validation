@@ -80,6 +80,12 @@
 		 */
 		public $iDigitsLandLine = 8;
 		
+		
+		/**
+		 * @var \Integer|null $sDigitsOnlyWithoutCountryPrefix Phone number without country prefix
+		 */
+		public $sDigitsOnlyWithoutCountryPrefix = null;
+		
 		/**
 		 * @var \Integer $iDigitsMobile Max number of digits for a mobile number, excluding country code or starting 0
 		 */

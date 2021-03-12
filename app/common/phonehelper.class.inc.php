@@ -9,7 +9,7 @@
  * Defines classes for phone number validation, which offers some methods to validate phone numbers. Warning: specifically for Belgian use.
  *
  */
- 
+  
  namespace jb_itop_extensions\contact_method;
 	
 	/**
@@ -23,17 +23,19 @@
 		/** @var \String $sOriginalNumber Original phone number */
 		public $sOriginalNumber;
 		
-		
 		/**
 		 * Constructor for phone number validator. Immediately keeps a copy of only the digits.
 		 * 
-		 * @param \String $sPhoneNumber Phone number as specified by the user
+		 * @param \String|null $sPhoneNumber Phone number as specified by the user
 		 * @return void
 		 * 
 		 */
-		function __construct($sPhoneNumber) {
-			$this->sOriginalNumber = $sPhoneNumber;
-			$this->sDigitsOnly = preg_replace('/[^\d]/', '', $this->sOriginalNumber);
+		public function __construct($sPhoneNumber = null) {
+			
+			if($sPhoneNumber !== null) {
+				$this->SetDigits($sPhoneNumber);
+			}
+			
 		}
 		
 		/**
@@ -60,6 +62,20 @@
 			// Often a slash, but not required
 			// Then numbers, sometimes with a space or dot in between
 			return preg_match('/^(+|)[0-9 \.\/]{1,}$/', $this->sOriginalNumber);
+		}
+		
+		/**
+		 * Sets phone digits for this validator.
+		 * 
+		 * @param \String $sPhoneNumber Phone number as specified by the user
+		 * @return void
+		 * 
+		 */
+		public function SetDigits($sPhoneNumber) {
+			
+			$this->sOriginalNumber = $sPhoneNumber;
+			$this->sDigitsOnly = preg_replace('/[^\d]/', '', $this->sOriginalNumber);
+			
 		}
 		
 	}
@@ -90,21 +106,7 @@
 		 * @var \Integer $iDigitsMobile Max number of digits for a mobile number, excluding country code or starting 0
 		 */
 		public $iDigitsMobile = 9;
-		
-		/**
-		 * Constructor for phone number validator. Immediately keeps a copy of only the digits.
-		 * 
-		 * @param \String $sPhoneNumber Phone number as specified by the user
-		 * @return void
-		 * 
-		 */
-		function __construct($sPhoneNumber) {
-
-			parent::__construct($sPhoneNumber);
-			$this->sDigitsOnlyWithoutCountryPrefix = preg_replace('/^(0|'.$this->iCountryCode.')/', '', $this->sDigitsOnly);
-			
-		}
-		
+				
 		/**
 		 * Returns only the local digits. No +32 or 0
 		 * 
@@ -217,4 +219,19 @@
 			return (strlen($this->sDigitsOnlyWithoutCountryPrefix) == $this->iDigitsMobile);
 		}
 		
+		/**
+		 * Sets phone digits for this validator.
+		 * 
+		 * @param \String $sPhoneNumber Phone number as specified by the user
+		 * @return void
+		 * 
+		 */
+		public function SetDigits($sPhoneNumber) {
+			
+			parent::SetDigits($sPhoneNumber);
+			$this->sDigitsOnlyWithoutCountryPrefix = preg_replace('/^(0|'.$this->iCountryCode.')/', '', $this->sDigitsOnly);
+			
+		}
+		
 	}
+	

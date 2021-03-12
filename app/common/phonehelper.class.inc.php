@@ -125,7 +125,7 @@
 		 *
 		 * @return \Boolean
 		 */
-		public function HasValidBelgianCountryPrefix() {
+		public function HasValidCountryPrefix() {
 			return (Bool)preg_match('/^(0|32)/', $this->GetDigits());
 		}
 		
@@ -136,7 +136,7 @@
 		 *
 		 * @return \Boolean
 		 */
-		public function HasValidBelgianMobilePrefix() {
+		public function HasValidMobilePrefix() {
 			
 			// https://www.bipt.be/en/consumers/telephone/numbering/numbering-principles
 			// 046, 047, 048, 049
@@ -165,13 +165,13 @@
 		 * @return \Boolean
 		 * 
 		 */
-		public function IsValidBelgianNumber($bStrict = false) {
+		public function IsValidNumber($bStrict = false) {
 			
 			if($bStrict == true && $this->ContainsOnlyAllowedCharacters() == false) {
 				return false;
 			}
 			
-			return ($this->IsValidBelgianLandLineNumber() == true || $this->IsValidBelgianMobileNumber() == true);
+			return ($this->IsValidLandLineNumber() == true || $this->IsValidMobileNumber() == true);
 		}
 		
 		/**
@@ -180,10 +180,10 @@
 		 * @return \Boolean
 		 * 
 		 */
-		public function IsValidBelgianLandLineNumber() {
+		public function IsValidLandLineNumber() {
 			// 1) must have a Belgian country code or 0
 			// 2) must have a length of 8 non-country digits
-			return ($this->HasValidBelgianCountryPrefix() == true && $this->HasValidNumberOfDigitsLandLineNumber() == true);
+			return ($this->HasValidCountryPrefix() == true && $this->HasValidNumberOfDigitsLandLineNumber() == true);
 		}
 		
 		/**
@@ -192,11 +192,11 @@
 		 * @return \Boolean
 		 * 
 		 */
-		public function IsValidBelgianMobileNumber() {
+		public function IsValidMobileNumber() {
 			// 1) must have a Belgian country code or 0
 			// 2) must have a valid Belgian mobile prefix
 			// 3) must have a length of 9 non-country digits
-			return ($this->HasValidBelgianCountryPrefix() == true && $this->HasValidBelgianMobilePrefix() == true && $this->HasValidNumberOfDigitsMobileNumber() == true);
+			return ($this->HasValidCountryPrefix() == true && $this->HasValidMobilePrefix() == true && $this->HasValidNumberOfDigitsMobileNumber() == true);
 		}
 		
 		/**

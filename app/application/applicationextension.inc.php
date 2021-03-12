@@ -58,10 +58,10 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 					switch(true) {
 						
 						// Belgian land line phone number
-						case $oBelgianPhoneNumberValidator->IsValidBelgianLandLineNumber() == true:
+						case $oBelgianPhoneNumberValidator->IsValidLandLineNumber() == true:
 						
 						// International phone number - hopefully land line
-						case $oBelgianPhoneNumberValidator->HasValidBelgianCountryPrefix() == false:
+						case $oBelgianPhoneNumberValidator->HasValidCountryPrefix() == false:
 						
 							// No error
 							break;
@@ -86,10 +86,10 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 					switch(true) {
 						
 						// Belgian mobile phone number
-						case $oBelgianPhoneNumberValidator->IsValidBelgianMobileNumber() == true:
+						case $oBelgianPhoneNumberValidator->IsValidMobileNumber() == true:
 						
 						// International phone number - hopefully mobile
-						case $oBelgianPhoneNumberValidator->HasValidBelgianCountryPrefix() == false:
+						case $oBelgianPhoneNumberValidator->HasValidCountryPrefix() == false:
 						
 							// No error
 							break;
@@ -139,10 +139,10 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				case strlen($sPhoneNumber) == 0:
 				
 				// Belgian land line number
-				case $oBelgianPhoneNumberValidator->IsValidBelgianLandLineNumber() == true:
+				case $oBelgianPhoneNumberValidator->IsValidLandLineNumber() == true:
 				
 				// International phone number - hopefully land line
-				case $oBelgianPhoneNumberValidator->HasValidBelgianCountryPrefix() == false:
+				case $oBelgianPhoneNumberValidator->HasValidCountryPrefix() == false:
 				
 				// 'admin' gets +00 000 000 000 by default during iTop installation in one of the 2.7 versions
 				case $sPhoneNumber == '+00 000 000 000' && (Int)$oObject->GetKey() < 1:
@@ -168,10 +168,10 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				case strlen($sMobileNumber) == 0:
 				
 				// Belgian mobile phone number
-				case $oBelgianPhoneNumberValidator->IsValidBelgianMobileNumber() == true:
+				case $oBelgianPhoneNumberValidator->IsValidMobileNumber() == true:
 				
 				// International phone number - hopefully mobile
-				case $oBelgianPhoneNumberValidator->HasValidBelgianCountryPrefix() == false:
+				case $oBelgianPhoneNumberValidator->HasValidCountryPrefix() == false:
 				
 					// No error
 					break;

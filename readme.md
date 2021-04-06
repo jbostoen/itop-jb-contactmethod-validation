@@ -14,6 +14,9 @@ Please get in touch to discuss the terms: **jbostoen.itop@outlook.com**
 Adds validation for certain contact methods (in the ContactMethod objects).
 Currently only based on the situation in Belgium (length of phone numbers).
 
+For now, this is specifically for Belgian phone numbers; but I'm open to pull requests for a more generic form of validation which may better support international needs.
+
+
 ## Requirements
 
 iTop extensions

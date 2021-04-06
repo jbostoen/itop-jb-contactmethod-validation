@@ -20,8 +20,8 @@
 		/** @var \String $sDigitsOnly Only digits */
 		public $sDigitsOnly;
 		
-		/** @var \String $sOriginalNumber Original phone number */
-		public $sOriginalNumber;
+		/** @var \String $sOriginalProvidedInput Original phone number */
+		public $sOriginalProvidedInput;
 		
 		/**
 		 * Constructor for phone number validator. Immediately keeps a copy of only the digits.
@@ -61,7 +61,7 @@
 			// Might contain spaces
 			// Often a slash, but not required
 			// Then numbers, sometimes with a space or dot in between
-			return preg_match('/^(+|)[0-9 \.\/]{1,}$/', $this->sOriginalNumber);
+			return preg_match('/^(+|)[0-9 \.\/]{1,}$/', $this->sOriginalProvidedInput);
 		}
 		
 		/**
@@ -73,11 +73,22 @@
 		 */
 		public function SetDigits($sPhoneNumber) {
 			
-			$this->sOriginalNumber = $sPhoneNumber;
-			$this->sDigitsOnly = preg_replace('/[^\d]/', '', $this->sOriginalNumber);
+			$this->sOriginalProvidedInput = $sPhoneNumber;
+			$this->sDigitsOnly = preg_replace('/[^\d]/', '', $this->sOriginalProvidedInput);
 			
 		}
 		
+		/**
+		 * Checks whether the provided phone number is a local phone number.
+		 * 
+		 * @return \Boolean
+		 * 
+		 */
+		public function IsLocalNumber($sPhoneNumber) {
+			
+			return (substr($this->GetDigits(), 0, 1) == '0');
+			
+		}
 	}
 
 
@@ -106,9 +117,30 @@
 		 * @var \Integer $iDigitsMobile Max number of digits for a mobile number, excluding country code or starting 0
 		 */
 		public $iDigitsMobile = 9;
+		
+		/**
+		 * @var \Boolean $bAcceptLocalZone Whether or not to accept local numbers (0). Defaults to false.
+		 */
+		public $bAcceptLocalZone = false;
+		
+		/**
+		 * Constructor for phone number validator. Immediately keeps a copy of only the digits.
+		 * 
+		 * @param \String|null $sPhoneNumber Phone number as specified by the user
+		 * @return void
+		 * 
+		 */
+		public function __construct($sPhoneNumber = null, $bAcceptLocalZone = false) {
+			
+			parent::__construct($sPhoneNumber, $bAcceptLocalZone);
+			
+			$this->bAcceptLocalZone = true;
+			
+			
+		}
 				
 		/**
-		 * Returns only the local digits. No +32 or 0
+		 * Returns only the local digits. No +countrycode or 0
 		 * 
 		 * @return \String Local digits
 		 * 
@@ -126,7 +158,15 @@
 		 * @return \Boolean
 		 */
 		public function HasValidCountryPrefix() {
-			return (Bool)preg_match('/^(0|32)/', $this->GetDigits());
+			
+			if($this->bAcceptLocalZone == true && preg_match('/^0/', $this->GetDigits())) {
+				return true;
+			}
+			elseif(preg_match('/^'.$this->iCountryCode.'/', $this->GetDigits())) {
+				return true;
+			}
+			
+			return false;
 		}
 		
 		/**

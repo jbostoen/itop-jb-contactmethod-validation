@@ -52,7 +52,7 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				
 				case 'phone':
 				
-					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail);
+					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail, true);
 					$oObject->Set('contact_detail', $oBelgianPhoneNumberValidator->GetDigits());
 					
 					switch(true) {
@@ -80,7 +80,7 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				
 				case 'mobile_phone':
 				
-					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail);
+					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail, true);
 					$oObject->Set('contact_detail', $oBelgianPhoneNumberValidator->GetDigits());
 					
 					switch(true) {
@@ -131,7 +131,7 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 			// Check phone
 			// ---
 			$sPhoneNumber = $oObject->Get('phone');
-			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sPhoneNumber);
+			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sPhoneNumber, true);
 			
 			switch(true) {
 				
@@ -160,7 +160,7 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 			// Check mobile phone
 			// ---
 			$sMobileNumber = $oObject->Get('mobile_phone');
-			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sMobileNumber);
+			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sMobileNumber, true);
 			
 			switch(true) {
 				

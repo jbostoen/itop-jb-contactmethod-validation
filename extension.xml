@@ -2,12 +2,12 @@
 <extension format="1.0">
 	<extension_code>jb-contactmethod-validation</extension_code>
 	<company></company>
-	<author><![CDATA[ jbostoen ]]></author>
-	<label><![CDATA[ Datamodel: Contact Method ]]></label>
-	<description><![CDATA[ Adds Contact Method tab to Person. See read me of this extension.]]></description>
+	<author><![CDATA[ jbostoen]]></author>
+	<label><![CDATA[ Datamodel: Contact Method - validation]]></label>
+	<description><![CDATA[Performs validation of the contact method.]]></description>
 	<version>2.6.201202</version>
 	<release_date>2020-12-02</release_date>
-	<version_description><![CDATA[  ]]></version_description>
+	<version_description><![CDATA[]]></version_description>
 	<itop_version_min>2.6.0</itop_version_min>
 	<status>stable</status>
 	<mandatory>false</mandatory>

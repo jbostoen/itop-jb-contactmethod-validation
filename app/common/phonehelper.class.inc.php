@@ -61,7 +61,7 @@
 			// Might contain spaces
 			// Often a slash, but not required
 			// Then numbers, sometimes with a space or dot in between
-			return preg_match('/^(+|)[0-9 \.\/]{1,}$/', $this->sOriginalProvidedInput);
+			return preg_match('/^(\+|)[0-9 \.\/]{1,}$/', $this->sOriginalProvidedInput);
 		}
 		
 		/**

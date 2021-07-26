@@ -45,8 +45,8 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				
 		if($oObject instanceof ContactMethod) {
 			
-			$sContactDetail = $oObject->Get('contact_detail');
 			$sContactMethod = $oObject->Get('contact_method');
+			$sContactDetail = $oObject->Get('contact_detail');
 			
 			switch($sContactMethod) {
 				
@@ -64,6 +64,12 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 						case $oBelgianPhoneNumberValidator->HasValidCountryPrefix() == false:
 						
 							// No error
+							break;
+						
+						// Mobile phone number instead? Fallback
+						case $oBelgianPhoneNumberValidator->IsValidMobileNumber() == true:
+						
+							$oObject->Set('contact_method', 'mobile_phone');
 							break;
 												
 						// Unidentified
@@ -127,10 +133,11 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 		elseif($oObject instanceof Person) {
 			
 			$aErrors = [];
+			$sPhoneNumber = $oObject->Get('phone');
+			$sMobileNumber = $oObject->Get('mobile_phone');
 			
 			// Check phone
 			// ---
-			$sPhoneNumber = $oObject->Get('phone');
 			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sPhoneNumber, true);
 			
 			switch(true) {
@@ -149,6 +156,13 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				
 					// No error
 					break;
+				
+				// Mobile phone number instead? Fallback
+				case $oBelgianPhoneNumberValidator->IsValidMobileNumber() == true && $sMobileNumber == '':
+				
+					$oObject->Set('mobile_phone', $sPhoneNumber);
+					$oObject->Set('phone', '');
+					break;
 					
 				// Unidentified
 				default:
@@ -159,7 +173,6 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 			
 			// Check mobile phone
 			// ---
-			$sMobileNumber = $oObject->Get('mobile_phone');
 			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sMobileNumber, true);
 			
 			switch(true) {

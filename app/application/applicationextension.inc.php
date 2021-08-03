@@ -3,7 +3,7 @@
 /**
  * @copyright   Copyright (C) 2019 Jeffrey Bostoen
  * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
- * @version     2020-12-02 13:56:48
+ * @version     2.6.210803
  *
  * PHP Main file
  */
@@ -25,8 +25,10 @@ use \MetaModel;
 use \ContactMethod;
 use \Person;
 
-
-class ApplicationObjectExtension_ContactMethodValidation implements iApplicationObjectExtension {
+/**
+ * Class AOE_Validation. Used to actually validate, but not improve the object.
+ */
+class AOE_Validation implements iApplicationObjectExtension {
 	 	  
 	/**
 	 * Invoked to determine whether an object can be written to the database 
@@ -36,13 +38,13 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 	 * 
 	 * @param DBObject $oObject The target object
 	 * @return string[] A list of errors message. An error message is made of one line and it can be displayed to the end-user.
+	 * 
+	 * @details It's worth noting that you have complete access and even may set properties here; but it's called during DBUpdate() and changes will NOT be saved.
 	 */	
 	public function OnCheckToWrite($oObject) {
 				
-		// Note: you can set properties here on the object!
-		// Abusing this method to only keep digits of valid phone numbers.
-		// Only blocks invalid input
-				
+		$aErrors = [];
+	
 		if($oObject instanceof ContactMethod) {
 			
 			$sContactMethod = $oObject->Get('contact_method');
@@ -65,20 +67,11 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 						
 							// No error
 							break;
-						
-						// Mobile phone number instead? Fallback
-						case $oBelgianPhoneNumberValidator->IsValidMobileNumber() == true:
-						
-							$oObject->Set('contact_method', 'mobile_phone');
-							break;
 												
 						// Unidentified
 						default:
 						
-							return [ 
-								Dict::S('Errors/ContactMethod/InvalidPhoneNumber')
-							];
-							
+							$aErrors[] = Dict::S('Errors/ContactMethod/InvalidPhoneNumber');							
 						
 					}
 				
@@ -104,9 +97,7 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 						default: 
 							
 							// Belgian land line phone number
-							return [ 
-								Dict::S('Errors/ContactMethod/InvalidMobilePhoneNumber')
-							];
+							$aErrors[] = Dict::S('Errors/ContactMethod/InvalidMobilePhoneNumber');
 							
 					}
 					
@@ -117,9 +108,7 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 								
 					if(!filter_var($sContactDetail, FILTER_VALIDATE_EMAIL)) {
 					 
-						return [
-							Dict::S('Errors/ContactMethod/InvalidEmail')
-						];
+						$aErrors[] =  Dict::S('Errors/ContactMethod/InvalidEmail');
 						
 					}
 				
@@ -132,12 +121,12 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 		
 		elseif($oObject instanceof Person) {
 			
-			$aErrors = [];
 			$sPhoneNumber = $oObject->Get('phone');
 			$sMobileNumber = $oObject->Get('mobile_phone');
 			
 			// Check phone
 			// ---
+			
 			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sPhoneNumber, true);
 			
 			switch(true) {
@@ -156,18 +145,11 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				
 					// No error
 					break;
-				
-				// Mobile phone number instead? Fallback
-				case $oBelgianPhoneNumberValidator->IsValidMobileNumber() == true && $sMobileNumber == '':
-				
-					$oObject->Set('mobile_phone', $sPhoneNumber);
-					$oObject->Set('phone', '');
-					break;
 					
 				// Unidentified
 				default:
 				
-					$aErrors[] = Dict::S('Errors/ContactMethod/InvalidPhoneNumber').' - Person ID '.$oObject->GetKey().' - Number: '.$sPhoneNumber;
+					$aErrors[] = Dict::S('Errors/ContactMethod/InvalidPhoneNumber');
 				
 			}
 			
@@ -204,15 +186,14 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 				$aErrors[] = Dict::S('Errors/ContactMethod/InvalidEmail');				
 			}
 		
-			return $aErrors;
 			
 		}
 		
-		// No errors		
-		return [];
+		return $aErrors;
 				
 	}	
-	
+
+
 	/**
 	 * Invoked to determine whether an object has been modified in memory
 	 *
@@ -283,5 +264,146 @@ class ApplicationObjectExtension_ContactMethodValidation implements iApplication
 		return;
 	}
 	
+	/**
+	 * 
+	 * Updates related Person object each time a ContactMethod is removed.
+	 * It checks if it's one of the default contact details (phone, mobile phone, email) and sets the info to blank or the last other known info.
+	 *  	 
+	 */
+	public function OnContactMethodDeleted($oObject) {
+				
+		// If a ContactMethod is deleted, the related Person object should be updated to reflect these changes 
+		if($oObject instanceof ContactMethod) {
+			
+			$oContactMethod = $oObject;
+			$sContactMethod = $oContactMethod->Get('contact_method');
+			$sContactDetail = $oContactMethod->Get('contact_detail');
+			
+			switch($sContactMethod) {
+				
+				case 'phone':
+				case 'mobile_phone':
+				case 'email':
+					
+					// Retrieve Person
+					$sOQL = 'SELECT Person WHERE id = :person_id';
+					$oSet_Person = new DBObjectSet(DBObjectSearch::FromOQL($sOQL), [], [
+						'person_id' => $oContactMethod->Get('person_id')
+					]);
+			
+					// Only 1 person should be retrieved
+					$oPerson = $oSet_Person->Fetch();
+
+					// Set Person's attribute value to empty if the value was the same as the one for the ContactMethod that has been deleted
+					if($oPerson->Get($sContactMethod) == $sContactDetail) {
+						
+						$oPerson->Set($sContactMethod, '');
+							
+						
+						// But what if a fallback is possible, to update the Person object with another most recent ContactMethod of the same contact_method type?
+						// Since this query is executed before ContactMethod is really deleted: 
+						// Don't include the current (deleted) ContactMethod object in t his query.
+						$sOQL = 'SELECT ContactMethod WHERE person_id = :person_id AND contact_method = :contact_method AND id != :id';			
+						
+						// Return maximum one. Descending by id.
+						$oSet_ContactMethod = new DBObjectSet(DBObjectSearch::FromOQL($sOQL), ['id' => false], [
+							'person_id' => $oPerson->GetKey(),
+							'contact_method' => $sContactMethod,
+							'id' => $oContactMethod->GetKey()
+						], [], 1);
+							
+						// But maybe there's another last known ContactMethod.
+						// Simply look at 'id' and take the last one, not date of last change (yet)
+						while($oExistingContactMethod = $oSet_ContactMethod->Fetch()){
+							$oPerson->Set($sContactMethod, $oExistingContactMethod->Get('contact_detail'));	
+						}
+						
+						// Reset person attribute
+						$oPerson->DBUpdate();
+						
+					}
+					break;
+					
+				default:
+					break;
+		
+			}
+			
+		}
+		
+		// if Person is deleted, iTop should automatically remove all ContactMethods by default
+		
+		return;
+	}
+	
+}
+
+abstract class CME_Validation implements iContactMethodExtension {
+	
+	/** @var \Float Rank. Order of execution of these validations. */
+	public $fRank = 1;
+	 	  
+	/**
+	 * Performs validation. May move a 'phone' value to a 'mobile phone' value.
+	 * 
+	 * @param \Person|\ContactMethod iTop object
+	 * 
+	 * @return void
+	 */	
+	public function BeforeSaveObject($oObject) {
+		
+		if($oObject instanceof ContactMethod) {
+			
+			$sContactMethod = $oObject->Get('contact_method');
+			$sContactDetail = $oObject->Get('contact_detail');
+			
+			switch($sContactMethod) {
+				
+				case 'phone':
+				
+					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail, true);
+					$oObject->Set('contact_detail', $oBelgianPhoneNumberValidator->GetDigits());
+					
+					// Phone number is actually a mobile phone number?
+					if($oBelgianPhoneNumberValidator->IsValidMobileNumber() == true) {
+						$oObject->Set('contact_method', 'mobile_phone');
+					}
+					break;
+				
+				case 'mobile_phone':
+				
+					$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sContactDetail, true);
+					$oObject->Set('contact_detail', $oBelgianPhoneNumberValidator->GetDigits());
+					break;
+					
+				default:
+					break;
+					
+			}
+			
+		}
+		
+		elseif($oObject instanceof Person) {
+			
+			$aErrors = [];
+			$sPhoneNumber = $oObject->Get('phone');
+			$sMobileNumber = $oObject->Get('mobile_phone');
+			
+			// Check phone
+			// ---
+			
+			$oBelgianPhoneNumberValidator = new BelgianPhoneNumberValidator($sPhoneNumber, true);
+			
+			// Phone number is actually a mobile phone number?
+			if($oBelgianPhoneNumberValidator->IsValidMobileNumber() == true && $sMobileNumber == '') {
+				
+				$oObject->Set('mobile_phone', $oBelgianPhoneNumberValidator->GetDigits());
+				$oObject->Set('phone', '');
+				
+			}
+			
+		}
+				
+	}	
 	
 }

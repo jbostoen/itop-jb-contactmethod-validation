@@ -7,7 +7,7 @@ Copyright (c) 2019-2021 Jeffrey Bostoen
 
 Need assistance with iTop or one of its extensions?  
 Need custom development?  
-Please get in touch to discuss the terms: **jbostoen.itop@outlook.com**
+Please get in touch to discuss the terms: **info@jeffreybostoen.be** / https://jeffreybostoen.be
 
 
 ## What?

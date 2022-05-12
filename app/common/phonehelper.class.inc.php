@@ -179,12 +179,13 @@
 		public function HasValidMobilePrefix() {
 			
 			// https://www.bipt.be/en/consumers/telephone/numbering/numbering-principles
-			// 046, 047, 048, 049
+			// https://en.wikipedia.org/wiki/Telephone_numbers_in_Belgium
+			// 044, 045, 046, 047, 048, 049
 			// 04 = land line too, Liège and Voeren. Less digits!
 			// Hence a check for the first 2 digits and the total number of digits.			
 			
 			switch(true) {
-				case preg_match('/^(46|47|48|49)/', $this->sDigitsOnlyWithoutCountryPrefix) && $this->HasValidNumberOfDigitsMobileNumber():
+				case preg_match('/^(4[4-9])/', $this->sDigitsOnlyWithoutCountryPrefix) && $this->HasValidNumberOfDigitsMobileNumber():
 					return true;
 					break;
 					
